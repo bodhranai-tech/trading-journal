@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Apex Trading Journal</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#060c18;--s1:#0b1526;--s2:#0f1e34;--bd:#152238;--bd2:#1a2d4a;--g:#00c896;--r:#ff4560;--b:#2563eb;--mu:#4a6080;--tx:#dde4f0;--tx2:#8899bb}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px}
+.mono{font-family:'SF Mono','Fira Code','Consolas',monospace}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:#080f1e}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:10px}
+a,.btn{cursor:pointer}
+.btn{font-family:inherit;font-weight:600;font-size:13px;padding:8px 16px;border-radius:7px;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;letter-spacing:.3px}
+.btn-p{background:var(--b);color:#fff}.btn-p:hover{background:#1d4ed8}
+.btn-g{background:transparent;color:var(--tx2);border:1px solid var(--bd)}.btn-g:hover{background:var(--bd);color:var(--tx)}
+.btn-d{background:transparent;color:var(--r);border:1px solid #ff456033}.btn-d:hover{background:#ff456018}
+.btn-sm{font-size:12px;padding:5px 10px;border-radius:5px}
+.inp{font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:13px;background:var(--bg);border:1px solid var(--bd);border-radius:7px;color:var(--tx);padding:9px 12px;width:100%;outline:none;transition:border-color .15s}
+.inp:focus{border-color:var(--b)}
+.inp option{background:var(--s1)}
+.lbl{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--mu);text-transform:uppercase;margin-bottom:5px}
+.win{color:var(--g)}.loss{color:var(--r)}.mut{color:var(--mu)}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.3px;display:inline-block}
+.bl{background:#00c89622;color:var(--g)}.bs{background:#ff456022;color:var(--r)}.bb{background:#4a608022;color:var(--tx2)}
+/* Header */
+#hdr{background:#080f1e;border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100}
+.hdr-inner{max-width:1300px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:8px;padding:12px 0;margin-right:16px;white-space:nowrap}
+.logo-icon{width:26px;height:26px;background:linear-gradient(135deg,#1d4ed8,#00c896);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:900}
+.logo-text{font-size:15px;font-weight:800;letter-spacing:.5px}
+.logo-text span{color:var(--b)}
+.tabs{display:flex;gap:0}
+.tab{font-family:inherit;font-size:13px;font-weight:600;padding:10px 16px;cursor:pointer;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--mu);transition:all .15s;text-transform:capitalize;letter-spacing:.3px}
+.tab:hover{color:var(--tx2)}.tab.active{color:var(--tx);border-bottom-color:var(--b)}
+.hdr-stats{display:flex;gap:16px;margin-left:auto;align-items:center}
+.hdr-stat{text-align:right}
+.hdr-stat .sl{font-size:9px;color:var(--mu);letter-spacing:1px;text-transform:uppercase}
+.hdr-stat .sv{font-size:14px;font-weight:600;font-family:'SF Mono','Fira Code','Consolas',monospace}
+.hdr-div{width:1px;height:26px;background:var(--bd)}
+/* Main */
+#main{max-width:1300px;margin:0 auto;padding:24px 20px}
+/* Stat cards */
+.stat-grid{display:grid;gap:12px;margin-bottom:12px}
+.sg4{grid-template-columns:repeat(4,1fr)}
+.sg3{grid-template-columns:repeat(3,1fr)}
+.sg2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:900px){.sg4{grid-template-columns:repeat(2,1fr)}.sg3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.sg4,.sg3,.sg2{grid-template-columns:1fr}}
+.stat-card{padding:16px 20px}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--mu);text-transform:uppercase;margin-bottom:6px}
+.stat-val{font-size:22px;font-weight:600;font-family:'SF Mono','Fira Code','Consolas',monospace;line-height:1.1}
+.stat-sub{font-size:11px;color:var(--mu);margin-top:5px}
+/* Chart containers */
+.chart-box{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:20px;margin-bottom:16px;overflow:hidden}
+.chart-title{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--mu);text-transform:uppercase;margin-bottom:14px}
+svg.chart{width:100%;display:block;overflow:visible}
+/* Table */
+.tbl-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:10px;overflow:auto;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--mu);padding:11px 14px;text-align:left;border-bottom:1px solid var(--bd);cursor:pointer;white-space:nowrap;user-select:none}
+th:hover{color:var(--tx2)}
+td{padding:9px 14px;font-size:13px;border-bottom:1px solid #0b1526;font-family:'SF Mono','Fira Code','Consolas',monospace;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--s2)}
+/* Toolbar */
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.toolbar .inp{width:auto;flex:0 0 auto}
+.spacer{flex:1}
+/* Calendar */
+.cal-hdr{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.cal-nav{display:flex;align-items:center;gap:8px}
+.cal-nav-btn{background:var(--s1);border:1px solid var(--bd);color:var(--tx2);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.cal-nav-btn:hover{background:var(--bd);color:var(--tx)}
+.cal-month-title{font-size:16px;font-weight:700;min-width:170px;text-align:center}
+.view-toggle{display:flex;background:var(--s1);border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.vt-btn{padding:7px 16px;background:transparent;border:none;color:var(--mu);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;transition:all .15s;text-transform:capitalize}
+.vt-btn:hover{color:var(--tx2)}.vt-btn.active{background:var(--b);color:#fff}
+.cal-grid-hdr{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.cal-dow{text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--mu);padding:6px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cell{border:1px solid #0f1e34;border-radius:6px;padding:6px;min-height:68px;transition:background .1s}
+.cal-cell:hover{background:var(--s2)}
+.cal-cell.today{border-color:#2563eb44;background:#2563eb08}
+.cal-cell.empty{opacity:.12;pointer-events:none}
+.cal-day-num{font-size:11px;color:var(--mu)}
+.cal-cell.today .cal-day-num{color:var(--b);font-weight:700}
+.cal-day-pnl{font-size:11px;font-weight:600;margin-top:4px;font-family:'SF Mono','Fira Code','Consolas',monospace;word-break:break-all}
+.cal-day-cnt{font-size:9px;color:var(--mu);margin-top:2px}
+/* Year grid */
+.year-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:700px){.year-grid{grid-template-columns:repeat(2,1fr)}}
+.yr-card{padding:16px 18px}
+.yr-name{font-size:14px;font-weight:700;color:var(--tx2);margin-bottom:8px}
+.yr-pnl{font-size:19px;font-weight:600;font-family:'SF Mono','Fira Code','Consolas',monospace}
+.yr-bar-bg{height:3px;border-radius:2px;background:var(--bd);margin-top:8px}
+.yr-bar-fg{height:100%;border-radius:2px;transition:width .3s}
+.yr-sub{font-size:10px;color:var(--mu);margin-top:6px}
+/* Modal */
+#modal-bg{display:none;position:fixed;inset:0;background:rgba(6,12,24,.9);z-index:1000;align-items:center;justify-content:center;padding:12px}
+#modal-bg.open{display:flex}
+#modal-box{background:var(--s1);border:1px solid var(--bd2);border-radius:14px;width:560px;max-width:100%;max-height:92vh;overflow-y:auto}
+.modal-hdr{padding:18px 22px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+.modal-hdr h2{font-size:15px;font-weight:700}
+.modal-body{padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.modal-body .full{grid-column:1/-1}
+.modal-ftr{padding:14px 22px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:10px}
+.tp-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tp-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:5px;border:1px solid var(--bd);color:var(--mu);font-size:12px;cursor:pointer;transition:all .15s;user-select:none}
+.tp-chip.on{border-color:var(--g);background:#00c89614;color:var(--g)}
+textarea.inp{font-family:inherit;resize:vertical}
+.info-row{font-size:11px;color:var(--mu);margin-top:6px}
+/* Misc */
+.fade{animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.divider{width:1px;height:26px;background:var(--bd)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hdr"></header>
+  <main id="main"></main>
+</div>
+<div id="modal-bg">
+  <div id="modal-box"></div>
+</div>
+
+<script>
+// ═══════════════════ UTILS ═══════════════════
+const G='#00c896',R='#ff4560',B='#2563eb',MU='#4a6080';
+const SYMS=['EURUSD','GBPUSD','USDJPY','XAUUSD','NAS100','SPX500','GBPJPY','AUDUSD','BTCUSD','US30','USDCAD'];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MSHT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DOWS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmt=(n,plus=false)=>{if(isNaN(n))return'$0.00';const a=Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});if(n>0)return(plus?'+':'')+' $'+a;if(n<0)return'-$'+a;return'$0.00'};
+const fmtPct=n=>(isNaN(n)?'0.0':n.toFixed(1))+'%';
+const pc=n=>n>0?G:n<0?R:MU;
+const result=n=>n>0?'Win':n<0?'Loss':'BE';
+const resBadge=n=>n>0?'bl':n<0?'bs':'bb';
+const today=new Date();
+const todayStr=today.toISOString().split('T')[0];
+
+// ═══════════════════ STATS ═══════════════════
+function calcStats(trades){
+  if(!trades.length)return{totalPnl:0,winRate:0,profitFactor:0,largestWin:0,largestLoss:0,avgWin:0,avgLoss:0,totalTrades:0,wins:0,losses:0,be:0,maxWinStreak:0,maxLossStreak:0,grossWin:0,grossLoss:0,expectancy:0};
+  const wins=trades.filter(t=>t.pnl>0),losses=trades.filter(t=>t.pnl<0),be=trades.filter(t=>t.pnl===0);
+  const totalPnl=trades.reduce((s,t)=>s+t.pnl,0);
+  const grossWin=wins.reduce((s,t)=>s+t.pnl,0);
+  const grossLoss=Math.abs(losses.reduce((s,t)=>s+t.pnl,0));
+  const winRate=wins.length/trades.length*100;
+  const profitFactor=grossLoss>0?grossWin/grossLoss:grossWin>0?99.9:0;
+  const largestWin=wins.length?Math.max(...wins.map(t=>t.pnl)):0;
+  const largestLoss=losses.length?Math.min(...losses.map(t=>t.pnl)):0;
+  const avgWin=wins.length?grossWin/wins.length:0;
+  const avgLoss=losses.length?grossLoss/losses.length:0;
+  const expectancy=(winRate/100)*avgWin-(1-winRate/100)*avgLoss;
+  const sorted=[...trades].sort((a,b)=>a.date.localeCompare(b.date));
+  let maxWinStreak=0,maxLossStreak=0,cw=0,cl=0;
+  for(const t of sorted){if(t.pnl>0){cw++;cl=0;maxWinStreak=Math.max(maxWinStreak,cw);}else if(t.pnl<0){cl++;cw=0;maxLossStreak=Math.max(maxLossStreak,cl);}else{cw=0;cl=0;}}
+  return{totalPnl,winRate,profitFactor,largestWin,largestLoss,avgWin,avgLoss,totalTrades:trades.length,wins:wins.length,losses:losses.length,be:be.length,maxWinStreak,maxLossStreak,grossWin,grossLoss,expectancy};
+}
+
+function buildEquity(trades){
+  const byDate={};
+  trades.forEach(t=>{byDate[t.date]=(byDate[t.date]||0)+t.pnl;});
+  const sorted=Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0]));
+  let r=0;
+  return sorted.map(([d,p])=>({label:d.slice(5),y:parseFloat((r+=p).toFixed(2))}));
+}
+
+// ═══════════════════ SAMPLE DATA ═══════════════════
+function genSample(){
+  const trades=[];const rnd=(a,b)=>a+Math.random()*(b-a);
+  for(let d=90;d>=0;d--){
+    const dt=new Date(today);dt.setDate(dt.getDate()-d);
+    if(dt.getDay()===0||dt.getDay()===6)continue;
+    const n=Math.random()<0.25?0:Math.floor(rnd(1,4));
+    for(let i=0;i<n;i++){
+      const win=Math.random()>0.42;
+      const pnl=win?Math.round(rnd(80,950)*100)/100:-Math.round(rnd(40,620)*100)/100;
+      const t1=pnl>0,t2=t1&&Math.random()>.45,t3=t2&&Math.random()>.5,t4=t3&&Math.random()>.6;
+      trades.push({id:uid(),date:dt.toISOString().split('T')[0],symbol:SYMS[Math.floor(Math.random()*SYMS.length)],direction:Math.random()>.5?'Long':'Short',pnl,size:Math.round(rnd(.1,3)*100)/100,tp1:t1,tp2:t2,tp3:t3,tp4:t4,notes:''});
+    }
+  }
+  return trades;
+}
+
+// ═══════════════════ STATE ═══════════════════
+const S={
+  trades:genSample(),
+  tab:'dashboard',
+  calView:'month',
+  calMonth:today.getMonth(),
+  calYear:today.getFullYear(),
+  search:'',
+  filterSym:'',
+  filterDir:'',
+  sortCol:'date',
+  sortDir:'desc',
+};
+
+// ═══════════════════ SVG CHARTS ═══════════════════
+function lineChartSVG(data,{h=200,color=G}={}){
+  if(!data||data.length<2)return`<div style="height:${h}px;display:flex;align-items:center;justify-content:center;color:${MU};font-size:12px">No data</div>`;
+  const w=800,pad={t:12,r:12,b:28,l:56};
+  const iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
+  const vals=data.map(d=>d.y);
+  const minY=Math.min(...vals,0),maxY=Math.max(...vals,1),rng=maxY-minY||1;
+  const x=i=>pad.l+(i/Math.max(data.length-1,1))*iw;
+  const y=v=>pad.t+ih-((v-minY)/rng)*ih;
+  const pathD=data.map((d,i)=>`${i===0?'M':'L'}${x(i).toFixed(1)},${y(d.y).toFixed(1)}`).join(' ');
+  const areaD=`${pathD} L${x(data.length-1).toFixed(1)},${y(0).toFixed(1)} L${x(0).toFixed(1)},${y(0).toFixed(1)} Z`;
+  const ticks=5;
+  const tickStep=rng/(ticks-1);
+  const tickVals=Array.from({length:ticks},(_,i)=>minY+tickStep*i);
+  const step=Math.max(1,Math.floor(data.length/6));
+  const xLabels=data.filter((_,i)=>i%step===0||(i===data.length-1));
+  const zY=y(0).toFixed(1);
+  const aColor=S.trades.reduce((s,t)=>s+t.pnl,0)>=0?G:R;
+  return`<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+  <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${aColor}" stop-opacity="0.18"/><stop offset="100%" stop-color="${aColor}" stop-opacity="0"/></linearGradient></defs>
+  ${tickVals.map(v=>`<line x1="${pad.l}" y1="${y(v).toFixed(1)}" x2="${w-pad.r}" y2="${y(v).toFixed(1)}" stroke="#152238" stroke-width="1"/>`).join('')}
+  <line x1="${pad.l}" y1="${zY}" x2="${w-pad.r}" y2="${zY}" stroke="#1a2d4a" stroke-width="1" stroke-dasharray="5,5"/>
+  ${tickVals.map(v=>{const lbl=Math.abs(v)>=1000?`${v>=0?'':'−'}$${(Math.abs(v)/1000).toFixed(1)}k`:`${v>=0?'':'-'}$${Math.abs(v).toFixed(0)}`;return`<text x="${pad.l-5}" y="${y(v).toFixed(1)}" fill="${MU}" font-size="9" text-anchor="end" dominant-baseline="middle" font-family="monospace">${lbl}</text>`;}).join('')}
+  <path d="${areaD}" fill="url(#ag)"/>
+  <path d="${pathD}" fill="none" stroke="${aColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  ${xLabels.map(d=>`<text x="${x(data.indexOf(d)).toFixed(1)}" y="${h-4}" fill="${MU}" font-size="9" text-anchor="middle" font-family="monospace">${esc(d.label)}</text>`).join('')}
+  </svg>`;
+}
+
+function barChartSVG(data,{h=180}={}){
+  if(!data||!data.length)return`<div style="height:${h}px;display:flex;align-items:center;justify-content:center;color:${MU};font-size:12px">No data</div>`;
+  const w=800,pad={t:10,r:10,b:28,l:56};
+  const iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
+  const vals=data.map(d=>d.y);
+  const minY=Math.min(...vals,0),maxY=Math.max(...vals,1),rng=maxY-minY||1;
+  const n=data.length,bw=(iw/n)*0.65,gap=iw/n;
+  const cx=i=>pad.l+gap*i+gap/2;
+  const y0=v=>pad.t+ih-((v-minY)/rng)*ih;
+  const zY=y0(0).toFixed(1);
+  const ticks=4;
+  const tickVals=Array.from({length:ticks},(_,i)=>minY+(rng/(ticks-1))*i);
+  return`<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+  ${tickVals.map(v=>`<line x1="${pad.l}" y1="${y0(v).toFixed(1)}" x2="${w-pad.r}" y2="${y0(v).toFixed(1)}" stroke="#152238" stroke-width="1"/>`).join('')}
+  <line x1="${pad.l}" y1="${zY}" x2="${w-pad.r}" y2="${zY}" stroke="#1a2d4a" stroke-width="1"/>
+  ${tickVals.map(v=>{const lbl=Math.abs(v)>=1000?`${v>=0?'':'−'}$${(Math.abs(v)/1000).toFixed(1)}k`:`${v>=0?'':'-'}$${Math.abs(v).toFixed(0)}`;return`<text x="${pad.l-5}" y="${y0(v).toFixed(1)}" fill="${MU}" font-size="9" text-anchor="end" dominant-baseline="middle" font-family="monospace">${lbl}</text>`;}).join('')}
+  ${data.map((d,i)=>{
+    const pos=d.y>=0,bH=Math.max(Math.abs(y0(d.y)-y0(0)),2),bx=(cx(i)-bw/2).toFixed(1),by=(pos?y0(d.y):y0(0)).toFixed(1);
+    return`<rect x="${bx}" y="${by}" width="${bw.toFixed(1)}" height="${bH.toFixed(1)}" fill="${pos?G:R}" opacity=".85" rx="2"/>
+    <text x="${cx(i).toFixed(1)}" y="${h-5}" fill="${MU}" font-size="9" text-anchor="middle" font-family="monospace">${esc(d.label)}</text>`;
+  }).join('')}
+  </svg>`;
+}
+
+// ═══════════════════ CSV ═══════════════════
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/);
+  if(lines.length<2)return[];
+  const hdrs=lines[0].toLowerCase().split(',').map(h=>h.trim().replace(/"/g,''));
+  const get=(row,k)=>{const i=hdrs.indexOf(k);return i>=0?(row[i]||'').trim().replace(/"/g,''):''};
+  return lines.slice(1).filter(l=>l.trim()).map(line=>{
+    const row=line.split(',');
+    const pnl=parseFloat(get(row,'pnl'))||0;
+    return{id:uid(),date:get(row,'date')||todayStr,symbol:(get(row,'symbol')||'UNKNOWN').toUpperCase(),direction:get(row,'direction')||'Long',pnl,size:parseFloat(get(row,'size'))||0,tp1:['true','1','yes'].includes(get(row,'tp1').toLowerCase()),tp2:['true','1','yes'].includes(get(row,'tp2').toLowerCase()),tp3:['true','1','yes'].includes(get(row,'tp3').toLowerCase()),tp4:['true','1','yes'].includes(get(row,'tp4').toLowerCase()),notes:get(row,'notes')||''};
+  }).filter(t=>t.date.match(/^\d{4}-\d{2}-\d{2}$/));
+}
+
+function toCSV(trades){
+  const h='Date,Symbol,Direction,PnL,Size,TP1,TP2,TP3,TP4,Notes';
+  const rows=trades.map(t=>[t.date,t.symbol,t.direction,t.pnl.toFixed(2),t.size,t.tp1,t.tp2,t.tp3,t.tp4,`"${(t.notes||'').replace(/"/g,'""')}"`].join(','));
+  return[h,...rows].join('\n');
+}
+
+// ═══════════════════ RENDER HELPERS ═══════════════════
+function statCard(label,val,color,sub=''){
+  return`<div class="card stat-card">
+    <div class="stat-label">${label}</div>
+    <div class="stat-val" style="color:${color}">${val}</div>
+    ${sub?`<div class="stat-sub">${sub}</div>`:''}
+  </div>`;
+}
+
+function tpBadges(t){
+  return[1,2,3,4].filter(n=>t[`tp${n}`]).map(n=>`<span style="color:${G};font-size:11px;margin-right:4px">TP${n}</span>`).join('')||`<span style="color:#1a2d4a">—</span>`;
+}
+
+// ═══════════════════ TABS ═══════════════════
+function renderDashboard(){
+  const st=calcStats(S.trades);
+  const eq=buildEquity(S.trades);
+  const recent=[...S.trades].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  return`<div class="fade">
+  <div class="chart-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+      <div>
+        <div class="chart-title">Equity Curve</div>
+        <div class="mono" style="font-size:28px;font-weight:600;color:${pc(st.totalPnl)}">${fmt(st.totalPnl,true)}</div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div style="text-align:right"><div style="font-size:9px;color:${MU};letter-spacing:1px">WIN RATE</div><div class="mono" style="font-size:18px;font-weight:600;color:${st.winRate>=50?G:R}">${fmtPct(st.winRate)}</div></div>
+        <div style="text-align:right"><div style="font-size:9px;color:${MU};letter-spacing:1px">PROFIT FACTOR</div><div class="mono" style="font-size:18px;font-weight:600;color:${st.profitFactor>=1?G:R}">${st.profitFactor>=99?'∞':st.profitFactor.toFixed(2)}</div></div>
+        <div style="text-align:right"><div style="font-size:9px;color:${MU};letter-spacing:1px">TRADES</div><div class="mono" style="font-size:18px;font-weight:600">${st.totalTrades}</div></div>
+      </div>
+    </div>
+    ${lineChartSVG(eq,{h:200})}
+  </div>
+  <div class="stat-grid sg4">
+    ${statCard('Largest Win',fmt(st.largestWin),G,`Avg win: ${fmt(st.avgWin)}`)}
+    ${statCard('Largest Loss',fmt(st.largestLoss),R,`Avg loss: ${fmt(st.avgLoss)}`)}
+    ${statCard('Max Win Streak',st.maxWinStreak+' trades',G,'Consecutive wins')}
+    ${statCard('Max Loss Streak',st.maxLossStreak+' trades',R,'Consecutive losses')}
+  </div>
+  <div class="stat-grid sg4" style="margin-bottom:16px">
+    ${statCard('Gross Win',fmt(st.grossWin),G,st.wins+' winning trades')}
+    ${statCard('Gross Loss',fmt(st.grossLoss),R,st.losses+' losing trades')}
+    ${statCard('Expectancy / Trade',fmt(st.expectancy,true),pc(st.expectancy),'Avg expected PnL')}
+    ${statCard('Breakeven',st.be+' trades',MU,'Zero PnL result')}
+  </div>
+  <div class="card" style="overflow:hidden">
+    <div style="padding:12px 18px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;font-weight:700">Recent Trades</span>
+      <button class="btn btn-g btn-sm" data-action="go-trades">View all →</button>
+    </div>
+    <div style="overflow:auto"><table><thead><tr><th>Date</th><th>Symbol</th><th>Dir</th><th>Size</th><th>TPs</th><th>PnL</th><th>Result</th></tr></thead>
+    <tbody>${recent.map(t=>`<tr>
+      <td class="mut">${t.date}</td>
+      <td style="font-weight:700;font-family:inherit">${esc(t.symbol)}</td>
+      <td><span class="badge b${t.direction==='Long'?'l':'s'}">${t.direction}</span></td>
+      <td>${t.size}</td>
+      <td>${tpBadges(t)}</td>
+      <td style="color:${pc(t.pnl)};font-weight:600">${fmt(t.pnl,true)}</td>
+      <td><span class="badge ${resBadge(t.pnl)}">${result(t.pnl)}</span></td>
+    </tr>`).join('')}</tbody></table></div>
+  </div></div>`;
+}
+
+function renderTrades(){
+  let trades=[...S.trades];
+  if(S.search){const q=S.search.toLowerCase();trades=trades.filter(t=>t.symbol.toLowerCase().includes(q)||(t.notes||'').toLowerCase().includes(q));}
+  if(S.filterSym)trades=trades.filter(t=>t.symbol===S.filterSym);
+  if(S.filterDir)trades=trades.filter(t=>t.direction===S.filterDir);
+  trades.sort((a,b)=>{let av=a[S.sortCol],bv=b[S.sortCol];if(typeof av==='string')return S.sortDir==='asc'?av.localeCompare(bv):bv.localeCompare(av);return S.sortDir==='asc'?av-bv:bv-av;});
+  const netFiltered=trades.reduce((s,t)=>s+t.pnl,0);
+  const syms=[...new Set(S.trades.map(t=>t.symbol))].sort();
+  const arrow=col=>S.sortCol===col?`<span style="color:${B};margin-left:3px">${S.sortDir==='asc'?'▲':'▼'}</span>`:`<span style="color:var(--mu);margin-left:3px;opacity:.5">⇅</span>`;
+  return`<div class="fade">
+  <div class="toolbar">
+    <button class="btn btn-p" data-action="open-add">＋ Add Trade</button>
+    <button class="btn btn-g" data-action="import-csv">⬆ Import CSV</button>
+    <button class="btn btn-g" data-action="export-csv">⬇ Export CSV</button>
+    <button class="btn btn-d" data-action="reset-trades">⟳ Reset All</button>
+    <input type="file" id="csv-file" accept=".csv" style="display:none">
+    <div class="spacer"></div>
+    <input class="inp" id="search-inp" style="width:170px" placeholder="Search…" value="${esc(S.search)}">
+    <select class="inp" id="filter-sym" style="width:130px"><option value="">All symbols</option>${syms.map(s=>`<option${S.filterSym===s?' selected':''}>${s}</option>`).join('')}</select>
+    <select class="inp" id="filter-dir" style="width:120px"><option value="">All direction</option><option${S.filterDir==='Long'?' selected':''}>Long</option><option${S.filterDir==='Short'?' selected':''}>Short</option></select>
+  </div>
+  <div style="margin-bottom:10px;font-size:12px;color:var(--mu)">${trades.length} of ${S.trades.length} trades &nbsp;·&nbsp; Net: <span class="mono" style="color:${pc(netFiltered)}">${fmt(netFiltered,true)}</span></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr>
+      <th data-sort="date">Date ${arrow('date')}</th>
+      <th data-sort="symbol">Symbol ${arrow('symbol')}</th>
+      <th data-sort="direction">Dir ${arrow('direction')}</th>
+      <th data-sort="size">Size ${arrow('size')}</th>
+      <th>TPs</th>
+      <th data-sort="pnl">PnL ${arrow('pnl')}</th>
+      <th>Result</th>
+      <th style="min-width:140px">Notes</th>
+      <th></th>
+    </tr></thead>
+    <tbody>${trades.map(t=>`<tr>
+      <td class="mut">${t.date}</td>
+      <td style="font-weight:700;font-family:inherit">${esc(t.symbol)}</td>
+      <td><span class="badge b${t.direction==='Long'?'l':'s'}">${t.direction}</span></td>
+      <td>${t.size}</td>
+      <td>${tpBadges(t)}</td>
+      <td style="color:${pc(t.pnl)};font-weight:600">${fmt(t.pnl,true)}</td>
+      <td><span class="badge ${resBadge(t.pnl)}">${result(t.pnl)}</span></td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;font-family:inherit;color:var(--mu);font-size:12px">${esc(t.notes||'—')}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-g btn-sm" data-action="edit-trade" data-id="${t.id}">Edit</button>
+        <button class="btn btn-d btn-sm" data-action="del-trade" data-id="${t.id}" style="margin-left:4px">Del</button>
+      </td>
+    </tr>`).join('')}
+    ${!trades.length?'<tr><td colspan="9" style="text-align:center;color:var(--mu);padding:40px;font-family:inherit">No trades found</td></tr>':''}
+    </tbody>
+  </table></div>
+  <div class="info-row">CSV format: Date, Symbol, Direction, PnL, Size, TP1, TP2, TP3, TP4, Notes</div>
+  </div>`;
+}
+
+function renderCalendar(){
+  const {calView:cv,calMonth:cm,calYear:cy}=S;
+  let calTrades=S.trades;
+  if(cv==='year')calTrades=S.trades.filter(t=>new Date(t.date).getFullYear()===cy);
+  else calTrades=S.trades.filter(t=>{const d=new Date(t.date);return d.getFullYear()===cy&&d.getMonth()===cm;});
+  const netCal=calTrades.reduce((s,t)=>s+t.pnl,0);
+
+  const navTitle=cv==='year'?String(cy):`${MONTHS[cm]} ${cy}`;
+  let viewContent='';
+
+  if(cv==='month'){
+    const first=new Date(cy,cm,1).getDay();
+    const days=new Date(cy,cm+1,0).getDate();
+    const byDay={};
+    calTrades.forEach(t=>{if(!byDay[t.date])byDay[t.date]={pnl:0,n:0};byDay[t.date].pnl+=t.pnl;byDay[t.date].n++;});
+    const cells=Array(first).fill(null).concat(Array.from({length:days},(_,i)=>i+1));
+    const dk=d=>`${cy}-${String(cm+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    viewContent=`<div class="cal-grid-hdr">${DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('')}</div>
+    <div class="cal-grid">${cells.map((d,i)=>{
+      if(!d)return`<div class="cal-cell empty"></div>`;
+      const k=dk(d),data=byDay[k],isToday=k===todayStr;
+      return`<div class="cal-cell${isToday?' today':''}">
+        <div class="cal-day-num">${d}</div>
+        ${data?`<div class="cal-day-pnl" style="color:${pc(data.pnl)}">${fmt(data.pnl,true)}</div><div class="cal-day-cnt">${data.n}T</div>`:''}
+      </div>`;
+    }).join('')}</div>`;
+  }else if(cv==='week'){
+    const daysInMonth=new Date(cy,cm+1,0).getDate();
+    const weeks=[];let cur={label:'',trades:[]};
+    for(let d=1;d<=daysInMonth;d++){
+      const dt=new Date(cy,cm,d),ds=dt.toISOString().split('T')[0],dow=dt.getDay();
+      if(dow===1||d===1){if(cur.label)weeks.push(cur);cur={label:ds,trades:[]};}
+      S.trades.filter(t=>t.date===ds).forEach(t=>cur.trades.push(t));
+      if(d===daysInMonth)weeks.push(cur);
+    }
+    viewContent=`<div class="tbl-wrap"><table style="min-width:600px"><thead><tr>
+      <th>Week of</th><th>Trades</th><th>W / L / BE</th><th>Win Rate</th><th>Gross Win</th><th>Gross Loss</th><th>Net PnL</th>
+    </tr></thead><tbody>${weeks.filter(w=>w.label).map(w=>{
+      const ws=calcStats(w.trades);
+      return`<tr>
+        <td class="mut">${w.label}</td><td>${ws.totalTrades}</td>
+        <td><span class="win">${ws.wins}W</span> / <span class="loss">${ws.losses}L</span> / <span class="mut">${ws.be}BE</span></td>
+        <td style="color:${ws.winRate>=50?G:R}">${fmtPct(ws.winRate)}</td>
+        <td class="win">${fmt(ws.grossWin)}</td><td class="loss">${fmt(ws.grossLoss)}</td>
+        <td style="color:${pc(ws.totalPnl)};font-weight:600">${fmt(ws.totalPnl,true)}</td>
+      </tr>`;}).join('')}</tbody></table></div>`;
+  }else{
+    const maxAbs=Math.max(...MSHT.map((_,mi)=>{const mt=S.trades.filter(t=>{const d=new Date(t.date);return d.getFullYear()===cy&&d.getMonth()===mi;});return Math.abs(mt.reduce((s,t)=>s+t.pnl,0));}),1);
+    viewContent=`<div class="year-grid">${MSHT.map((m,mi)=>{
+      const mt=S.trades.filter(t=>{const d=new Date(t.date);return d.getFullYear()===cy&&d.getMonth()===mi;});
+      const ys=calcStats(mt);const pct=Math.round(Math.abs(ys.totalPnl)/maxAbs*100);
+      return`<div class="card yr-card" style="border-color:${ys.totalPnl>0?'#00c89618':ys.totalPnl<0?'#ff456018':'var(--bd)'}">
+        <div class="yr-name">${m}</div>
+        <div class="yr-pnl" style="color:${pc(ys.totalPnl)}">${fmt(ys.totalPnl,true)}</div>
+        <div class="yr-bar-bg"><div class="yr-bar-fg" style="width:${pct}%;background:${pc(ys.totalPnl)}"></div></div>
+        <div class="yr-sub">${ys.totalTrades>0?`${ys.totalTrades} trades · ${ys.wins}W/${ys.losses}L · ${fmtPct(ys.winRate)}`:'No trades'}</div>
+      </div>`;}).join('')}</div>`;
+  }
+
+  return`<div class="fade">
+  <div class="cal-hdr">
+    <div class="view-toggle">
+      <button class="vt-btn${cv==='month'?' active':''}" data-calview="month">Month</button>
+      <button class="vt-btn${cv==='week'?' active':''}" data-calview="week">Week</button>
+      <button class="vt-btn${cv==='year'?' active':''}" data-calview="year">Year</button>
+    </div>
+    <div class="cal-nav">
+      <button class="cal-nav-btn" data-action="cal-prev">‹</button>
+      <span class="cal-month-title">${navTitle}</span>
+      <button class="cal-nav-btn" data-action="cal-next">›</button>
+    </div>
+    <div style="margin-left:auto;font-size:13px;color:var(--mu)">${calTrades.length} trades &nbsp;·&nbsp; <span class="mono" style="color:${pc(netCal)}">${fmt(netCal,true)}</span></div>
+  </div>
+  ${viewContent}</div>`;
+}
+
+function renderAnalytics(){
+  const bySymData=Object.values(S.trades.reduce((m,t)=>{if(!m[t.symbol])m[t.symbol]={label:t.symbol,y:0,wins:0,n:0};m[t.symbol].y+=t.pnl;if(t.pnl>0)m[t.symbol].wins++;m[t.symbol].n++;return m;},{})).sort((a,b)=>b.y-a.y).map(d=>({...d,y:parseFloat(d.y.toFixed(2))}));
+  const byDow=DOWS.map((d,i)=>({label:d,y:parseFloat(S.trades.filter(t=>new Date(t.date).getDay()===i).reduce((s,t)=>s+t.pnl,0).toFixed(2))})).slice(1,6);
+  const now2=new Date();
+  const monthly=Array.from({length:12},(_,i)=>{const d=new Date(now2.getFullYear(),now2.getMonth()-11+i,1);const y2=d.getFullYear(),m=d.getMonth();const p=S.trades.filter(t=>{const td=new Date(t.date);return td.getFullYear()===y2&&td.getMonth()===m;}).reduce((s,t)=>s+t.pnl,0);return{label:MSHT[m],y:parseFloat(p.toFixed(2))};});
+  return`<div class="fade">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="chart-box"><div class="chart-title">PnL by Symbol</div>${barChartSVG(bySymData,{h:180})}</div>
+    <div class="chart-box"><div class="chart-title">PnL by Day of Week</div>${barChartSVG(byDow,{h:180})}</div>
+  </div>
+  <div class="chart-box" style="margin-bottom:16px"><div class="chart-title">Monthly PnL — Last 12 Months</div>${barChartSVG(monthly,{h:160})}</div>
+  <div class="tbl-wrap"><div style="padding:12px 18px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:700">Symbol Breakdown</div>
+  <table><thead><tr><th>Symbol</th><th>Trades</th><th>Win Rate</th><th>Avg Win</th><th>Avg Loss</th><th>Profit Factor</th><th>Net PnL</th></tr></thead>
+  <tbody>${bySymData.map(d=>{const ts=S.trades.filter(t=>t.symbol===d.label);const ss=calcStats(ts);return`<tr>
+    <td style="font-weight:700;font-family:inherit">${esc(d.label)}</td><td>${ss.totalTrades}</td>
+    <td style="color:${ss.winRate>=50?G:R}">${fmtPct(ss.winRate)}</td>
+    <td class="win">${fmt(ss.avgWin)}</td><td class="loss">${fmt(ss.avgLoss)}</td>
+    <td style="color:${ss.profitFactor>=1?G:R}">${ss.profitFactor>=99?'∞':ss.profitFactor.toFixed(2)}</td>
+    <td style="color:${pc(d.y)};font-weight:600">${fmt(d.y,true)}</td>
+  </tr>`;}).join('')}</tbody></table></div></div>`;
+}
+
+// ═══════════════════ MODAL ═══════════════════
+function openModal(trade=null){
+  const isEdit=!!trade;
+  const f=trade||{date:todayStr,symbol:'',direction:'Long',pnl:'',size:'',tp1:false,tp2:false,tp3:false,tp4:false,notes:''};
+  document.getElementById('modal-box').innerHTML=`
+  <div class="modal-hdr"><h2>${isEdit?'✏️  Edit Trade':'＋  New Trade'}</h2><button class="btn btn-g btn-sm" id="modal-close">✕</button></div>
+  <div class="modal-body">
+    <div><div class="lbl">Date</div><input class="inp" type="date" id="f-date" value="${f.date}"></div>
+    <div><div class="lbl">Symbol</div><input class="inp" list="sym-list" id="f-sym" placeholder="e.g. EURUSD" value="${esc(f.symbol)}"><datalist id="sym-list">${SYMS.map(s=>`<option value="${s}">`).join('')}</datalist></div>
+    <div><div class="lbl">Direction</div><select class="inp" id="f-dir"><option${f.direction==='Long'?' selected':''}>Long</option><option${f.direction==='Short'?' selected':''}>Short</option></select></div>
+    <div><div class="lbl">PnL ($) — positive = win</div><input class="inp" type="number" step="0.01" id="f-pnl" placeholder="e.g. 245.50 or -120.00" value="${f.pnl}"></div>
+    <div><div class="lbl">Size / Lots</div><input class="inp" type="number" step="0.01" id="f-size" placeholder="e.g. 0.10" value="${f.size}"></div>
+    <div><div class="lbl">Take Profits Hit</div><div class="tp-row" id="tp-row">
+      ${[1,2,3,4].map(n=>`<div class="tp-chip${f['tp'+n]?' on':''}" data-tp="${n}"><span id="tp-ic${n}">${f['tp'+n]?'✓':'○'}</span> TP${n}</div>`).join('')}
+    </div></div>
+    <div class="full"><div class="lbl">Notes / Setup</div><textarea class="inp" id="f-notes" rows="3" placeholder="Setup rationale, mistakes, emotions, market context…">${esc(f.notes||'')}</textarea></div>
+  </div>
+  <div class="modal-ftr">
+    <button class="btn btn-g" id="modal-cancel">Cancel</button>
+    <button class="btn btn-p" id="modal-save">${isEdit?'Update Trade':'Add Trade'}</button>
+  </div>`;
+
+  const bg=document.getElementById('modal-bg');
+  bg.classList.add('open');
+  const tpState={tp1:!!f.tp1,tp2:!!f.tp2,tp3:!!f.tp3,tp4:!!f.tp4};
+
+  document.querySelectorAll('.tp-chip').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const n=el.dataset.tp;const k=`tp${n}`;
+      tpState[k]=!tpState[k];
+      el.classList.toggle('on',tpState[k]);
+      document.getElementById(`tp-ic${n}`).textContent=tpState[k]?'✓':'○';
+    });
+  });
+
+  const close=()=>bg.classList.remove('open');
+  document.getElementById('modal-close').onclick=close;
+  document.getElementById('modal-cancel').onclick=close;
+  bg.onclick=e=>{if(e.target===bg)close();};
+
+  document.getElementById('modal-save').onclick=()=>{
+    const date=document.getElementById('f-date').value;
+    const symbol=document.getElementById('f-sym').value.toUpperCase().trim();
+    const pnlV=parseFloat(document.getElementById('f-pnl').value);
+    if(!date||!symbol||isNaN(pnlV)){alert('Please fill in Date, Symbol, and PnL.');return;}
+    const t={id:f.id||uid(),date,symbol,direction:document.getElementById('f-dir').value,pnl:pnlV,size:parseFloat(document.getElementById('f-size').value)||0,...tpState,notes:document.getElementById('f-notes').value};
+    if(isEdit)S.trades=S.trades.map(x=>x.id===t.id?t:x);
+    else S.trades.push(t);
+    close();render();
+  };
+}
+
+// ═══════════════════ HEADER ═══════════════════
+function renderHeader(){
+  const st=calcStats(S.trades);
+  document.getElementById('hdr').innerHTML=`
+  <div class="hdr-inner">
+    <div class="logo"><div class="logo-icon">▲</div><div class="logo-text">APEX <span>JOURNAL</span></div></div>
+    <div class="tabs">${['dashboard','trades','calendar','analytics'].map(t=>`<button class="tab${S.tab===t?' active':''}" data-action="set-tab" data-tab="${t}" style="text-transform:capitalize">${t}</button>`).join('')}</div>
+    <div class="hdr-stats">
+      <div class="hdr-stat"><div class="sl">Net PnL</div><div class="sv" style="color:${pc(st.totalPnl)}">${fmt(st.totalPnl,true)}</div></div>
+      <div class="hdr-div"></div>
+      <div class="hdr-stat"><div class="sl">Win Rate</div><div class="sv" style="color:${st.winRate>=50?G:R}">${fmtPct(st.winRate)}</div></div>
+      <div class="hdr-div"></div>
+      <div class="hdr-stat"><div class="sl">PF</div><div class="sv" style="color:${st.profitFactor>=1?G:R}">${st.profitFactor>=99?'∞':st.profitFactor.toFixed(2)}</div></div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════ RENDER & EVENTS ═══════════════════
+function render(){
+  renderHeader();
+  const m=document.getElementById('main');
+  if(S.tab==='dashboard')m.innerHTML=renderDashboard();
+  else if(S.tab==='trades')m.innerHTML=renderTrades();
+  else if(S.tab==='calendar')m.innerHTML=renderCalendar();
+  else m.innerHTML=renderAnalytics();
+  attachListeners();
+}
+
+function attachListeners(){
+  // Search & filters
+  const si=document.getElementById('search-inp');
+  if(si)si.addEventListener('input',e=>{S.search=e.target.value;render();});
+  const fs=document.getElementById('filter-sym');
+  if(fs)fs.addEventListener('change',e=>{S.filterSym=e.target.value;render();});
+  const fd=document.getElementById('filter-dir');
+  if(fd)fd.addEventListener('change',e=>{S.filterDir=e.target.value;render();});
+  // CSV file input
+  const cf=document.getElementById('csv-file');
+  if(cf)cf.addEventListener('change',e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{const imp=parseCSV(ev.target.result);if(imp.length){S.trades.push(...imp);alert(`✓ Imported ${imp.length} trades`);render();}else alert('No valid trades found. Check CSV format.');};
+    reader.readAsText(file);e.target.value='';
+  });
+}
+
+// Single event delegation
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-action]')||e.target;
+  const action=el.dataset?.action;
+  const tab=el.dataset?.tab;
+  const id=el.dataset?.id;
+  const calview=el.dataset?.calview;
+  const sort=el.closest('th')?.dataset?.sort;
+
+  if(action==='set-tab'&&tab){S.tab=tab;render();}
+  else if(action==='go-trades'){S.tab='trades';render();}
+  else if(action==='open-add'){openModal();}
+  else if(action==='edit-trade'&&id){const t=S.trades.find(x=>x.id===id);if(t)openModal(t);}
+  else if(action==='del-trade'&&id){if(confirm('Delete this trade?')){S.trades=S.trades.filter(x=>x.id!==id);render();}}
+  else if(action==='import-csv'){document.getElementById('csv-file')?.click();}
+  else if(action==='reset-trades'){
+    if(confirm('⚠️ This will permanently delete all trade history. Are you sure?')){
+      if(confirm('Last chance — this cannot be undone. Delete all trades?')){
+        S.trades=[];render();
+      }
+    }
+  }
+  else if(action==='export-csv'){
+    const csv=toCSV(S.trades);
+    const blob=new Blob([csv],{type:'text/csv'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`apex_trades_${todayStr}.csv`;a.click();URL.revokeObjectURL(url);
+  }
+  else if(action==='cal-prev'){
+    if(S.calView==='year')S.calYear--;
+    else if(S.calMonth===0){S.calMonth=11;S.calYear--;}
+    else S.calMonth--;
+    render();
+  }
+  else if(action==='cal-next'){
+    if(S.calView==='year')S.calYear++;
+    else if(S.calMonth===11){S.calMonth=0;S.calYear++;}
+    else S.calMonth++;
+    render();
+  }
+  else if(calview){S.calView=calview;render();}
+  else if(sort){
+    if(S.sortCol===sort)S.sortDir=S.sortDir==='asc'?'desc':'asc';
+    else{S.sortCol=sort;S.sortDir='desc';}
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
